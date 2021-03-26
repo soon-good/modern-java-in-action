@@ -2,6 +2,7 @@ package io.study.modernjavainaction.playground;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.function.Tuple2;
 
 public class ReactivePlay {
 
@@ -129,5 +131,53 @@ public class ReactivePlay {
 			.expectNext(5L)
 			.expectNext(6L)
 			.verifyComplete();
+	}
+
+	@Test
+	@DisplayName("여러가지_Flux_타입들_결합하기")
+	void 여러가지_Flux_타입들_결합하기(){
+		Flux<String> employee = Flux.just("소방관#1", "소방관#2", "소방관#3")
+			.delayElements(Duration.ofMillis(500));
+
+		// 방법 1) 바로 만들기
+		Flux<String> movieFlux = Flux.just("봄날은 간다", "승리호")
+			.delaySubscription(Duration.ofMillis(250))
+			.delayElements(Duration.ofMillis(500));
+
+		// 방법 2) 리스트에서 Flux로 변환해보기
+//		List<String> movies = Arrays.asList("봄날은 간다", "승리호");
+//		Flux<String> movieFlux = Flux.fromIterable(movies)
+//			.delaySubscription(Duration.ofMillis(250))
+//			.delayElements(Duration.ofMillis(200));
+
+		Flux<String> mergedFlux = employee.mergeWith(movieFlux);
+
+		StepVerifier.create(mergedFlux)
+			.expectNext("소방관#1")
+			.expectNext("봄날은 간다")
+			.expectNext("소방관#2")
+			.expectNext("승리호")
+			.expectNext("소방관#3")
+			.verifyComplete();
+	}
+
+	/**
+	 * zip :: 하나의 요소씩 번갈아가며 합치기
+	 * ex)
+	 * 	f1 : ["소방관#1", "소방관#2", "소방관#3"], f2 : ["봄날은 간다.", "승리호"]
+	 *
+	 * 	Flux.zip(f1, f2);
+	 * 	결과) [소방관#1,봄날은 간다.]->[소방관#2,승리호]->||
+	 */
+	@Test
+	@DisplayName("zip_서로다른_Flux들의_값이_완전히_번갈아가며_호출되도록_지정")
+	void zip_서로다른_Flux들의_값이_완전히_번갈아가며_호출되도록_지정(){
+		Flux<String> employeesFlux = Flux.just("소방관#1", "소방관#2", "소방관#3");
+		Flux<String> moviesFlux = Flux.just("봄날은 간다.", "승리호");
+
+		Flux<Tuple2<String, String>> merzippedFlux = Flux.zip(employeesFlux, moviesFlux);
+
+		merzippedFlux.subscribe(element -> System.out.print(element + "->"));
+		System.out.println("||");
 	}
 }
