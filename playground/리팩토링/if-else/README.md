@@ -10,7 +10,7 @@ DFS 또는 Union Find 를 풀어보다보면 인덱스가 0에 닿는지, 배열
 
 ## 목차
 
-- [CASE 1 - 단순 적용 with BiFunction](#CASE-1-단순적용-with-bifunction)
+- [CASE 1 - 단순 적용 with BiFunction](#case-1---단순적용-with-bifunction)
 - [CASE 2](#CASE-2)
 
 
