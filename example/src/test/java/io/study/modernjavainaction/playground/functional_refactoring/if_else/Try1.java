@@ -1,25 +1,91 @@
 package io.study.modernjavainaction.playground.functional_refactoring.if_else;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class Try1 {
+
+	interface SerialGenerator {
+		public int apply(int row, int col, int col_size);
+	}
+
+	interface BoundaryValidator{
+		public boolean check(int row, int col, int col_size, String [][] array);
+	}
+
+	SerialGenerator generator = (row, col, col_size) -> {
+		return (row * col_size) + col;
+	};
 
 	static class Position{
 		int row;
 		int col;
+		int col_size;
+
+		private static final SerialGenerator SERIAL_GENERATOR = ((row, col, col_size) -> {
+			return (row * col_size) + col;
+		});
 
 		public Position(int row, int col){
 			this.row = row;
 			this.col = col;
 		}
 
-		Function<Position,Position> topperApplier = (pos -> {
-			return new Position(pos.row+1, pos.col);
-		});
+		public Position(int row, int col, int col_size){
+			this.row = row;
+			this.col = col;
+			this.col_size = col_size;
+		}
 
-		public Position getTopperPosition(Position pos){
-			return this.topperApplier.apply(pos);
+		public int getSerialNumber(){
+			return SERIAL_GENERATOR.apply(row, col, col_size);
+		}
+
+		public boolean boundaryCheck(){
+			// TODO
+			return false;
+		}
+
+		public boolean islandCheck(){
+			// TODO
+			return false;
+		}
+
+		public boolean isAvailableToGo(){
+			return boundaryCheck() && islandCheck();
+		}
+
+	}
+
+	/**
+	 * 싱글턴 (Bill Pugh's Singleton)
+	 */
+	static class Offset{
+
+		public static Position top(){return InnerOffset.TOP;}
+		public static Position bottom(){return InnerOffset.BOTTOM;}
+		public static Position left(){return InnerOffset.LEFT;}
+		public static Position right(){return InnerOffset.RIGHT;}
+
+		static class InnerOffset{
+			/**
+			 * TODO :: 이부분 동적으로 생성할 만한 방법 있을지 생각해보기
+			* */
+			private static final BoundaryValidator topValidator = (row, col, col_size, array)->{
+				if(row+1 >=0 && array[row][col] == "1")	return true;
+				return false;
+			};
+
+			private static final BoundaryValidator bottomValidator = (row, col, col_size, array)->{
+				if(row >=0 && array[row][col] == "1")	return true;
+				return false;
+			};
+
+			// ...
+
+			private static final Position TOP 		= new Position(-1, 0, 3);
+			private static final Position BOTTOM 	= new Position(1, 0, 3);
+			private static final Position LEFT 		= new Position(0, -1, 3);
+			private static final Position RIGHT 	= new Position(0, 1, 3);
 		}
 	}
 
@@ -32,6 +98,18 @@ public class Try1 {
 		// 상
 		if(row-1 >= 0 && array[row-1][col] == ISLAND){
 			System.out.println("위에 노드를 방문했는데 육지에요.");
+		}
+		// 하
+		if(row+1 <3 && array[row+1][col] == ISLAND){
+			System.out.println("아래 노드를 방문했는데 육지에요.");
+		}
+		// 좌
+		if(col-1 >=0 && array[row][col-1] == ISLAND){
+			System.out.println("아래 노드를 방문했는데 육지에요.");
+		}
+		// 우
+		if(col+1 <3 && array[row][col+1] == ISLAND){
+			System.out.println("아래 노드를 방문했는데 육지에요.");
 		}
 
 		BiFunction<Integer, Integer, Boolean> fnIndexZeroCheck_and_Island = (_row, _col)->{
