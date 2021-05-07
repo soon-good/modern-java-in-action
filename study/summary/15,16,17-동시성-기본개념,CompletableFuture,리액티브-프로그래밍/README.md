@@ -1,4 +1,4 @@
-# Chapter15. CompletableFuture 와 리액티브 프로그래밍
+# Chapter15,16,17 - 동시성 기본개념, CompletableFuture, 리액티브 프로그래밍
 
 **참고자료** : [모던 자바 인 액션](http://www.yes24.com/Product/Goods/77125987)<br>
 
