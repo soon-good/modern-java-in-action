@@ -2,6 +2,8 @@ package io.study.modernjavainaction.ch16;
 
 import io.study.modernjavainaction.ch16.discount.Discount;
 import io.study.modernjavainaction.ch16.discount.Quote;
+import io.study.modernjavainaction.ch16.exchange.ExchangeService;
+import io.study.modernjavainaction.ch16.exchange.ExchangeService.Money;
 import io.study.modernjavainaction.ch16.shop.Shop;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -65,6 +67,53 @@ public class AsyncPipelineTest_16_4 {
 			.collect(Collectors.toList());
 
 		priceStrFutures.stream()
+			.map(CompletableFuture::join)
+			.collect(Collectors.toList());
+
+		long duration = (System.nanoTime() - start) / 1000000;
+		System.out.println("[완료] " + duration + " ms");
+	}
+
+	@DisplayName("예제3_단순버전_두개의_비동기_연산을_수행후에_thenCombine_메서드로_결과를_조합하기")
+	@Test
+	void 예제3_단순버전_두개의_비동기_연산을_수행후에_thenCombine_메서드로_결과를_조합하기(){
+		long start = System.nanoTime();
+		String product = "myphone";
+		Shop shop1 = new Shop("광명시 삼성센터");
+
+		CompletableFuture<Double> future = CompletableFuture
+			.supplyAsync(() -> shop1.getPriceDouble(product))
+			.thenCombine(
+				CompletableFuture.supplyAsync(
+					() -> ExchangeService.getRate(Money.EUR, Money.USD)),
+				(price, rate) -> price * rate
+			);
+
+		future.join();
+		long duration = (System.nanoTime() - start) / 1000000;
+		System.out.println("[완료] " + duration + " ms");
+	}
+
+
+	@DisplayName("예제4_리스트버전_두개의_비동기_연산을_수행후에_thenCombine_메서드로_결과를_조합하기")
+	@Test
+	void 예제4_리스트버전_두개의_비동기_연산을_수행후에_thenCombine_메서드로_결과를_조합하기(){
+		long start = System.nanoTime();
+		String product = "myphone";
+//		ExchangeService exchangeService = new ExchangeService();
+
+		List<CompletableFuture<Double>> futureList = shops.stream()
+			.map(
+				shop -> CompletableFuture.supplyAsync(() -> shop.getPriceDouble(product), executor))
+			.map(future -> future.thenCombine(
+				CompletableFuture.supplyAsync(
+					() -> ExchangeService.getRate(Money.EUR, Money.USD)
+				),
+				(price, rate) -> price * rate
+			))
+			.collect(Collectors.toList());
+
+		futureList.stream()
 			.map(CompletableFuture::join)
 			.collect(Collectors.toList());
 
