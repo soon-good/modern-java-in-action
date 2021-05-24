@@ -21,6 +21,11 @@ public class Shop {
 		return name + ":" + price + ":" + code;
 	}
 
+	public double getPriceDouble(String product){
+		return calculatePrice(product);
+	}
+
+
 	public double calculatePrice(String product) {
 		// static import
 		delay();
