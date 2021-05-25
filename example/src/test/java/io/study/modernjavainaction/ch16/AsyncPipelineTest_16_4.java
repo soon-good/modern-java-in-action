@@ -6,10 +6,14 @@ import io.study.modernjavainaction.ch16.exchange.ExchangeService;
 import io.study.modernjavainaction.ch16.exchange.ExchangeService.Money;
 import io.study.modernjavainaction.ch16.shop.Shop;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -119,5 +123,65 @@ public class AsyncPipelineTest_16_4 {
 
 		long duration = (System.nanoTime() - start) / 1000000;
 		System.out.println("[완료] " + duration + " ms");
+	}
+
+	@DisplayName("예제5_CompletableFuture_로직을_ExecutorService_방식으로_구현해보기")
+	@Test
+	void 예제5_CompletableFuture_로직을_ExecutorService_방식으로_구현해보기(){
+		long start = System.nanoTime();
+		String product = "myphone";
+		Shop shop1 = new Shop("광명시 삼성센터");
+
+		ExecutorService executor = Executors.newCachedThreadPool();
+
+		final Future<Double> futureRate = executor.submit(new Callable<Double>(){
+			@Override
+			public Double call() throws Exception {
+				return ExchangeService.getRate(Money.EUR, Money.USD);
+			}
+		});
+
+		Future<Double> futurePriceUsd = executor.submit(new Callable<Double>() {
+			@Override
+			public Double call() throws Exception {
+				double priceInEUR = shop1.getPriceDouble(product);
+				// 위에서 생성했던 future인 futureRate 의 결과를 기다렸다가 결과를 조합해서 리턴
+				return priceInEUR * futureRate.get();
+			}
+		});
+	}
+
+	@DisplayName("예제6_타임아웃_적용하기")
+	@Test
+	void 예제6_타임아웃_적용하기(){
+		String product = "myphone";
+		Shop shop = new Shop("광명시 삼성센터");
+		CompletableFuture.supplyAsync(()-> shop.getPriceDouble(product))
+			.thenCombine(
+				CompletableFuture.supplyAsync(
+					() -> ExchangeService.getRate(Money.EUR, Money.USD)
+				),
+				(price, rate) -> price * rate
+			)
+			.orTimeout(3, TimeUnit.SECONDS);
+	}
+
+	@DisplayName("예제7_타임아웃_발생시_기본값으로_처리")
+	@Test
+	void 예제7_타임아웃_발생시_기본값으로_처리(){
+		double DEFAULT_RATE = 1.35;
+
+		String product = "myphone";
+		Shop shop = new Shop("광명시 삼성센터");
+
+		CompletableFuture.supplyAsync(()-> shop.getPriceDouble(product))
+			.thenCombine(
+				CompletableFuture.supplyAsync(
+					() -> ExchangeService.getRate(Money.EUR, Money.USD)
+				)
+				.completeOnTimeout(DEFAULT_RATE, 1, TimeUnit.SECONDS),
+				(price, rate) -> price * rate
+			)
+			.orTimeout(3, TimeUnit.SECONDS);
 	}
 }
