@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -149,6 +150,9 @@ public class AsyncPipelineTest_16_4 {
 				return priceInEUR * futureRate.get();
 			}
 		});
+
+		long duration = (System.nanoTime() - start) / 1000000;
+		System.out.println("[완료] " + duration + " ms");
 	}
 
 	@DisplayName("예제6_타임아웃_적용하기")
@@ -183,5 +187,40 @@ public class AsyncPipelineTest_16_4 {
 				(price, rate) -> price * rate
 			)
 			.orTimeout(3, TimeUnit.SECONDS);
+	}
+
+	public static void randomDelay(){
+		Random random = new Random();
+		int delay = 500 + random.nextInt(2000);
+		try{
+			Thread.sleep(delay);
+		}
+		catch (InterruptedException e){
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Stream<CompletableFuture<String>> findPricesStream(String product){
+		return shops.stream()
+			.map(shop -> CompletableFuture.supplyAsync(() -> shop.getPrice(product), executor))
+			.map(future -> future.thenApply(Quote::parse))
+			.map(future -> future.thenCompose(quote ->
+				CompletableFuture.supplyAsync(() -> Discount.applyDiscount(quote), executor)));
+	}
+
+	@DisplayName("예제8_CompletableFuture_종료에_반응하기")
+	@Test
+	void 예제8_CompletableFuture_종료에_반응하기(){
+		long start = System.nanoTime();
+		String product = "myphone";
+
+		CompletableFuture[] futures = findPricesStream(product)
+			.map(f -> f.thenAccept(System.out::println))
+			.toArray(size -> new CompletableFuture[size]);
+
+		CompletableFuture.allOf(futures).join();
+
+		long duration = (System.nanoTime() - start) / 1000000;
+		System.out.println("[완료] " + duration + " ms");
 	}
 }
