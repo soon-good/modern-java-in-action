@@ -16,7 +16,7 @@ public class ToBiggerTypeDataTest {
         // int 또는 long 을 float 로 변환하는 경우 숫자 손실이 발생한다.
         // long 을 double 로 변환하는 경우 숫자 손실이 발생한다.
 
-        // 이런 이유로 a == b == c 가 되는지 체크할때
+        // 이런 이유로 a == b 이면 b== c 가 되는지 체크할때
         // 각 타입 중 하나가 큰 타입일 경우 에러가 날 수도 있고,
         // 손실된 값도 같은 값으로 취급해버리는 오류가 발생하기도 한다.
         long a      = Long.MAX_VALUE;
