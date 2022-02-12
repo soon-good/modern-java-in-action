@@ -1,4 +1,4 @@
-package io.study.lang.javastudy2022ty1.puzzle86;
+package io.study.lang.javastudy2022ty1.puzzle85;
 
 public class Lazy {
 
