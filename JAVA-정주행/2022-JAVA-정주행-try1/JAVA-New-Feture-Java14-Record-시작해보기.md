@@ -94,7 +94,15 @@ public class RecordKeywordTest {
 
 <br>
 
-## 객체 생성
+## Record를 사용해보자
+
+`Record` 는  java 14 에서 도입된 개념이다. 일반적으로 Lombok 을 사용하면 `toString` , `hashCode`, `eqauls`, `Getter/Setter` 등의 보일러 플레이트 코드를 쉽게 대체할 수 있다. 하지만, Java14 에서는 이런 롬복의 장점을 수용한 `Record` 라는 키워드를 도입했다. `record` 는 Lombok 처럼 어노테이션 기반은 아니다. 코틀린의 클래스와 생김새가 유사하다.<br>
+
+가끔 테스트 스코프 내에서 Lombok을 적용하기 힘든 경우가 있다. 이런 경우에 적극적으로 `Record` 를 도입해보는 것은 어떨까? 최근에 테스트 코드에서 주로 사용하다가, 클래스 내부에서만 사용되는 자료형으로도 `record` 를 사용해봤는데, 편리하게 느껴졌었다. 동시성 + 병렬 환경에서도 thread safe 하다는 것이 `record` 객체의 장점이다.<br>
+
+<br>
+
+## Record 객체 생성
 
 정말 기본적인 사용법은 아래와 같다.
 
