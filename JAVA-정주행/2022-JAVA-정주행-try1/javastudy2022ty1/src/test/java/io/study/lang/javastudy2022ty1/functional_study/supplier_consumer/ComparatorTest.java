@@ -15,10 +15,10 @@ public class ComparatorTest {
     @Test
     public void TEST_COMPARATORS(){
         List<StockEarningValuation> earningValuations = Arrays.asList(
-                newEarningData("TSLA", new BigDecimal("95.10"), new BigDecimal("44.26")),
-                newEarningData("TSM", new BigDecimal("21.53"), new BigDecimal("14.81")),
-                newEarningData("LULU", new BigDecimal("40.11"), new BigDecimal("27.19")),
-                newEarningData("FB", new BigDecimal("14.44"), new BigDecimal("13.64"))
+            newEarningData("TSLA", BigDecimal.valueOf(95.10), BigDecimal.valueOf(44.26), BigDecimal.valueOf(7.40)),
+            newEarningData("TSM", BigDecimal.valueOf(21.53), BigDecimal.valueOf(14.81), BigDecimal.valueOf(4.36)),
+            newEarningData("LULU", BigDecimal.valueOf(40.11), BigDecimal.valueOf(27.19), BigDecimal.valueOf(7.50)),
+            newEarningData("FB", BigDecimal.valueOf(14.44), BigDecimal.valueOf(13.64), BigDecimal.valueOf(13.21))
         );
 
         Consumer<List<StockEarningValuation>> sysoutConsumer =
@@ -43,11 +43,12 @@ public class ComparatorTest {
         System.out.println();
     }
 
-    public StockEarningValuation newEarningData(String ticker, BigDecimal per, BigDecimal forwardPer){
+    public StockEarningValuation newEarningData(String ticker, BigDecimal per, BigDecimal forwardPer, BigDecimal eps){
         return StockEarningValuation.builder()
                 .ticker(ticker)
                 .per(per)
                 .forwardPer(forwardPer)
+                .eps(eps)
                 .build();
     }
 }
