@@ -1,6 +1,6 @@
 # Comparator
 
-Comparator 의 원형은 아래와 같다.
+`Comparator` 의 원형은 아래와 같다.
 
 ```java
 @FunctionalInterface
@@ -76,3 +76,28 @@ public StockEarningValuation newEarningData(String ticker, BigDecimal per, BigDe
 }
 ```
 
+<br>
+
+출력결과
+
+```plain
+PER SORT RESULT >> 
+StockEarningValuation(ticker=FB, per=14.44, forwardPer=13.64)
+StockEarningValuation(ticker=TSM, per=21.53, forwardPer=14.81)
+StockEarningValuation(ticker=LULU, per=40.11, forwardPer=27.19)
+StockEarningValuation(ticker=TSLA, per=95.10, forwardPer=44.26)
+
+Foward PER SORT RESULT >> 
+StockEarningValuation(ticker=FB, per=14.44, forwardPer=13.64)
+StockEarningValuation(ticker=TSM, per=21.53, forwardPer=14.81)
+StockEarningValuation(ticker=LULU, per=40.11, forwardPer=27.19)
+StockEarningValuation(ticker=TSLA, per=95.10, forwardPer=44.26)
+
+Ticker SORT RESULT >> 
+StockEarningValuation(ticker=FB, per=14.44, forwardPer=13.64)
+StockEarningValuation(ticker=LULU, per=40.11, forwardPer=27.19)
+StockEarningValuation(ticker=TSLA, per=95.10, forwardPer=44.26)
+StockEarningValuation(ticker=TSM, per=21.53, forwardPer=14.81)
+```
+
+<br>
