@@ -1,5 +1,7 @@
 package io.study.lang.javastudy2022ty1.functional_study.supplier_consumer;
 
+import io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo.Eps;
+import io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo.PeriodType;
 import io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo.StockEarningValuation;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +13,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ComparatorTest {
-
     @Test
     public void TEST_COMPARATORS(){
         List<StockEarningValuation> earningValuations = Arrays.asList(
