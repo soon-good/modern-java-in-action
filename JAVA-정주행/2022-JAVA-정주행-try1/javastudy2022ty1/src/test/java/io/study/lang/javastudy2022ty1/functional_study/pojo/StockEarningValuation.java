@@ -1,4 +1,4 @@
-package io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo;
+package io.study.lang.javastudy2022ty1.functional_study.pojo;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,8 +1,6 @@
 package io.study.lang.javastudy2022ty1.functional_study.supplier_consumer;
 
-import io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo.Eps;
-import io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo.PeriodType;
-import io.study.lang.javastudy2022ty1.functional_study.supplier_consumer.pojo.StockEarningValuation;
+import io.study.lang.javastudy2022ty1.functional_study.pojo.StockEarningValuation;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
