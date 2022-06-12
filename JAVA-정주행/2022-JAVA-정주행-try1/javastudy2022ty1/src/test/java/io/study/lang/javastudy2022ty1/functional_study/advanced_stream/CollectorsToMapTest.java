@@ -16,13 +16,14 @@ import java.util.stream.Stream;
 public class CollectorsToMapTest {
     @Test
     public void TEST_COLLECTORS_TO_MAP_1(){
-        Map<Integer, String> map1 = Stream.of(1,-3,5,7)
-                .collect(Collectors.toMap(x -> x, x -> "Value = " + x));
+        Map<String, String> map1 = Stream.of("Apple", "Banana", "Cherry")
+                .collect(Collectors.toMap(x -> x, x -> "문자열의 길이 = " + x.length()));
 
         System.out.println("map1 = " + map1);
 
-        Map<Integer, String> map2 = Stream.of(1, -3,5,7)
-                .collect(Collectors.toMap(Function.identity(), x -> "Value = " + x));
+        // x->x 는 Function.identity() 로 바꿔서 쓸수 있다.
+        Map<String, String> map2 = Stream.of("Apple", "Banana", "Cherry")
+                .collect(Collectors.toMap(x -> x, x -> "문자열의 길이 = " + x.length()));
 
         System.out.println("map2 = " + map2);
     }
@@ -51,8 +52,6 @@ public class CollectorsToMapTest {
                 .stream().collect(Collectors.toMap(Employee::getId, Employee::getJobType));
 
         System.out.println("idJobTypeMap2 = " + idJobTypeMap2);
-
-
     }
 
 
