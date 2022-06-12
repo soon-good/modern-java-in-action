@@ -1,7 +1,5 @@
 # Collectors
 
-
-
 # Stream::collect() 메서드
 
 Stream은 collect 메서드를 제공한다. collect 메서드의 원형은 아래와 같다.
@@ -153,6 +151,46 @@ toList() 메서드에서 중요하게 알아둬야 할 내용이 있긴 하다.<
 toList() 메서드가 리턴하는 Collector 는 리스트로 accumulate 하는 역할을 한다. 여기에서 type,mutability, serializability, thread-safty 가 보장되는 List를 리턴하지는 않는다.<br>
 
 ![1](./img/COLLECTORS/TO_LIST1.png)
+
+<br>
+
+## Collectors.mapping()
+
+Collectors.mapping() 의 명세는 아래와 같다.<br>
+
+![1](./img/COLLECTORS/COLLECTORS_MAPPING.png)
+
+내부적으로는 이렇게 동작한다. Function 객체를 받는데, 이것은 mapper 역할을 한다.  Collectors.mapping() 메서드 안으로 들어가서 Accumulator가 이 mapper를 이용해 계산작업을 수행한다.<br>
+
+그리고 downstream 이라고 부르는 `Collector` 객체는 `Collector` 클래스 내의 `accumulator()` 메서드에 의해  BiConsumer 객체로 새로 생성된다.<br>
+
+이 mapper, downstream 과 기타 다른 인자들을 받는 CollectorImpl 객체를 생성해서 최종 반환값은 Collector 로 생성된다.<br>
+
+아래는 Collectors::mapping(…) 메서드의 내부 구현이다. (사실, 위의 설명은 아래 그림의 내부 구현을 풀어서 설명한것임)<br>
+
+<br>
+
+![1](./img/COLLECTORS/COLLECTORS_MAPPING2.png)
+
+<br>
+
+그림으로 요약해보면 아래와 같다.<br>
+
+![1](./img/COLLECTORS/UML2.png)
+
+<br>
+
+## Collectors.reducing()
+
+Collectors.reducing() 메서드의 명세는 아래와 같다. 이 중 이번 문서에서 살펴볼 것은 두번째 메서드다.
+
+![1](./img/COLLECTORS/COLLECTORS_REDUCING.png)
+
+<br>
+
+초깃값 T 를 받고, 이것을 BinaryOperator를 이용해서 reduction 하는 작업을 수행한다.<br>
+
+![1](./img/COLLECTORS/UML3.png)
 
 <br>
 
