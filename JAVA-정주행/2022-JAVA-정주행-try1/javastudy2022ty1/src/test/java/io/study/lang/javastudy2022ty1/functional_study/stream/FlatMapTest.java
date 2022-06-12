@@ -1,4 +1,4 @@
-package io.study.lang.javastudy2022ty1.functional_study.supplier_consumer;
+package io.study.lang.javastudy2022ty1.functional_study.stream;
 
 import io.study.lang.javastudy2022ty1.functional_study.pojo.Eps;
 import io.study.lang.javastudy2022ty1.functional_study.pojo.PeriodType;
