@@ -20,7 +20,7 @@
 
 ```json
 {
-	"shell_cmd": "javac $file_name && java $file_base_name"
+	"shell_cmd": "javac $file_name -encoding UTF8 && java $file_base_name"
 }
 ```
 
