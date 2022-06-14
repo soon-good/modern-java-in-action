@@ -4,6 +4,8 @@
 
 <br>
 
+# 세팅
+
 >  Tools → Build System → New Build System
 
 ![1](./img/SUBLIME-TEXT-BUILD/1.png)
@@ -49,6 +51,37 @@
 ![1](./img/SUBLIME-TEXT-BUILD/5.png)
 
 <br>
+
+# DFS 또는 순열 돌릴때 무한재귀에 빠질 경우
+
+## MS-WINDOWS
+
+아무리 정확하게 한다고 해도 실수할 때가 있다. 이럴때는 당황하지 말고 터미널에서 아래의 명령어를 수행하자.
+
+```bash
+# JAVA 프로그램 검색
+tasklist | findstr java
+java.exe                     17236 Console                    1     32,508 K
+
+# taskkill 
+taskkill /pid 17236 /f
+```
+
+<br>
+
+## 리눅스 / Mac
+
+리눅스/Mac 에서는 아래와 같이...
+
+```bash
+ps -ef | grep java
+
+kill -9 [프로세스번호]
+```
+
+<br>
+
+
 
 
 
