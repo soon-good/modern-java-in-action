@@ -5,6 +5,7 @@ import reactor.core.scheduler.Schedulers;
 import util.Util;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
 public class MonoBasicTest {
@@ -157,6 +158,38 @@ public class MonoBasicTest {
                     return "[Supplier] >>> " + "(After 3s) (echo)... Helloooooo...";
                 })
                 .map(String::toUpperCase);
+    }
+
+    @Test
+    public void TEST_FUTURE_HELLO_NAME(){
+        Mono.fromFuture(futureHelloName())
+            .subscribe(Util.onNext());
+    }
+
+    public static CompletableFuture<String> futureHelloName(){
+        System.out.println("안녕하세요~~~");
+        return CompletableFuture.supplyAsync(() -> {
+            return Faker.instance().name().fullName();
+        });
+    }
+
+    @Test
+    public void TEST_FUTURE_HELLO_NAME_BY_SLEEP(){
+        Mono.fromFuture(futureHelloName())
+                .subscribe(Util.onNext());
+        Util.sleepSeconds(1);
+    }
+
+    @Test
+    public void TEST_RUNNABLE_HELLO_NAME(){
+        Mono.fromRunnable(runnableHelloName())
+                .subscribe(Util.onNext());
+    }
+
+    public static Runnable runnableHelloName(){
+        System.out.println("안녕하세요~~~");
+        Util.sleepSeconds(3);
+        return () -> System.out.println(Faker.instance().name().fullName());
     }
 
     @Test
