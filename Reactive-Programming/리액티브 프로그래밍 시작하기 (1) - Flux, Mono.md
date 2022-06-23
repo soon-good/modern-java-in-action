@@ -457,12 +457,730 @@ Scheduler 스레드가 모두 실행될 때 까지 기다렸다가 실행되는 
 
 ## fromFuture
 
+CompletableFuture 를 fromFuture 메서드로 사용해보자.<br>
+
+```java
+@Test
+public void TEST_FUTURE_HELLO_NAME(){
+    Mono.fromFuture(futureHelloName())
+        .subscribe(Util.onNext());
+}
+
+public static CompletableFuture<String> futureHelloName(){
+    System.out.println("안녕하세요~~~");
+    return CompletableFuture.supplyAsync(() -> {
+        return Faker.instance().name().fullName();
+    });
+}
+```
+
+`futureHelloName()` 메서드
+
+- "안녕하세요~~~" 라는 문자열을 출력한후, 임의의 영어이름을 리턴하는 역할의 CompletableFuture 객체를 리턴한다.
+
+TSET_FUTURE_HELLO_NAME() 메서드
+
+- future 객체를 Mono 로 받아서, 이것을 subscribe 한다.
+
+<br>
+
+**출력결과**<br>
+
+이제 출력결과를 살펴보자.
+
+```plain
+안녕하세요~~~
+```
+
+이상하게도 future에서 실행하는 구문이 출력되지 않는다. 왜일까?<br>
+
+Future로 실행하는 구문은 메인스레드가 아니라 별도의 스레드에서 실행하고 있고, 이것을 출력해주는 스레드는 메인 스레드다. 메인스레드는 Future 스레드가 종료되기 전에 매우 빠르게 종료된다. 이런 이유로 Future 스레드에서 subscribe() 를 통해 출력하는 문자열이 onNext() 를 통해 출력되지 못했다.<br>
+
+<br>
+
+이번에는 아래와 같이 코드를 작성해보자.<br>
+
+```java
+@Test
+public void TEST_FUTURE_HELLO_NAME_BY_SLEEP(){
+    Mono.fromFuture(futureHelloName())
+        .subscribe(Util.onNext());
+    Util.sleepSeconds(1);
+}
+
+public static CompletableFuture<String> futureHelloName(){
+    System.out.println("안녕하세요~~~");
+    return CompletableFuture.supplyAsync(() -> {
+        return Faker.instance().name().fullName();
+    });
+}
+```
+
+<br>
+
+출력결과는 아래와 같다.
+
+```plain
+안녕하세요~~~
+Received >>> Miss Elmo Oberbrunner
+```
+
+컴퓨터에게는 매우 긴 시간인 1초를 딜레이를 주어서 메인스레드가 future 스레드의 동작이 완료될때까지 기다렸고 그 결과 subscribe() 에서 사용하는 Util.onNext() 메서드에 의해 future 스레드가 반환하는 문자열을 출력할 수 있게 되었다.<br>
+
 <br>
 
 ## fromRunnable
 
+이번에는 Runnable 객체를 fromRunnable() 메서드로 실행시켜 보자.<br>
+
+```java
+    @Test
+    public void TEST_RUNNABLE_HELLO_NAME(){
+        Mono.fromRunnable(runnableHelloName())
+                .subscribe(Util.onNext());
+    }
+
+    public static Runnable runnableHelloName(){
+        System.out.println("안녕하세요~~~");
+        Util.sleepSeconds(3);
+        return () -> System.out.println(Faker.instance().name().fullName());
+    }
+```
+
 <br>
 
+출력결과
+
+```plain
+안녕하세요~~~
+Carmel Davis
+```
+
+<br>
+
+`fromFuture()` 메서드를 사용할 때와 결과가 조금 다르다. `fromFuture()` 메서드를 사용했을 때는, 메인스레드와 future 스레드가 별도로 실행됐었다. 하지만, fromRunnable() 메서드를 사용할 때는 Runnable 객체를 메인스레드에서 실행시키기에, 메인스레드에서 runnable 객체가 종료될 때 까지 기다려주는 것을 볼 수 있다.<br>
+
+<br>
+
+# Flux 기초
+
+이미 Mono 를 예제로 해서 여러가지 문법들을 공부했기에 중복되는 부분들은 설명을 최대한 줄여볼 생각이다. 대신 예제와 출력결과를 남겨두었으니, 나중에 가물가물해지더라도 다시 봤을때 이해가 되지 않을까 싶다.<br>
+
+<br>
+
+## Flux.just
+
+```java
+@Test
+public void FLUX_JUST_TEST(){
+    Flux<Integer> flux = Flux.just(1,2,3,4);
+    flux.subscribe(
+        Util.onNext(),
+        Util.onError(),
+        Util.onComplete()
+    );
+}
+```
+
+<br>
+
+출력결과는 아래와 같다.<br>
+
+```plain
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Completed
+```
+
+<br>
+
+## Flux.empty
+
+이번에도 역시 설명은 생략하려 한다. Mono 에서 `Emitting Empty` 라는 예제와 비슷한 예제이기 때문이다.
+
+```java
+@Test
+public void FLUX_EMPTY_TEST(){
+    Flux<Integer> flux = Flux.empty();
+    flux.subscribe(
+        Util.onNext(),
+        Util.onError(),
+        Util.onComplete()
+    );
+}
+```
+
+<br>
+
+출력결과는 아래와 같다.<br>
+
+```plain
+Completed
+```
+
+<br>
+
+## Flux.just를 여러가지 타입으로
+
+엄청 중요한 내용은 아닌데, 그냥 예제를 다양하게 해두면 좋을 것 같아서 정리를 시작하게 됐다.<br>
+
+```java
+@Test
+public void FLUX_JUST_VARIOUS_TYPE(){
+    Flux<Object> flux = Flux.just(1,2,3, "a", Faker.instance().name().fullName());
+    flux.subscribe(
+        Util.onNext(),
+        Util.onError(),
+        Util.onComplete()
+    );
+}
+```
+
+<br>
+
+**출력결과**
+
+```plain
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> a
+Received >>> Raymon Rippin
+Completed
+```
+
+<br>
+
+## Multiple Subscribers
+
+Stream 의 경우는 최종연산을 마치면서 Stream 이 close 되고 나면, 재사용할 수 없었다. 하지만 Flux의 경우 하나의 Flux 로부터 다른 Flux를 만들어낼 때 복사본을 만들어내는 듯해보인다. 아래는 이런 동작에 대한 예제다.<br>
+
+이런 점은 확실히 Flux, Mono 의 장점이라는 것이 느껴진다.<br>
+
+```java
+@Test
+public void FLUX_MULTIPLE_SUBSCRIBERS(){
+    Flux<Integer> numbersFlux = Flux.just(1,2,3,4,5,6,7,8,9,10);
+    Flux<Integer> oddFlux = numbersFlux.filter(n -> n%2 == 1);
+
+    numbersFlux.subscribe(n -> System.out.println("Subs 1 >>> " + n));
+    oddFlux.subscribe(n -> System.out.println("Subs 2 >>> " + n));
+    numbersFlux.subscribe(n -> System.out.println("Subs 1 >>> " + n));
+}
+```
+
+<br>
+
+**출력결과**<br>
+
+numbersFlux 의 내용과 numbersFlux의 데이터를 기반으로 filter 를 거친 oddFlux의 내용이 각각 다른 내용이다.<br>
+
+그리고 이것을 출력해보기 위해 subscribe() 로 확인해보면, 확실히 Flux로 subscribe를 한다고 해서 자료가 달라지지 않고 각각의 객체가 별개의 객체라는 것을 확인 가능하다.<br>
+
+<br>
+
+```plain
+Subs 1 >>> 1
+Subs 1 >>> 2
+Subs 1 >>> 3
+Subs 1 >>> 4
+Subs 1 >>> 5
+Subs 1 >>> 6
+Subs 1 >>> 7
+Subs 1 >>> 8
+Subs 1 >>> 9
+Subs 1 >>> 10
+Subs 2 >>> 1
+Subs 2 >>> 3
+Subs 2 >>> 5
+Subs 2 >>> 7
+Subs 2 >>> 9
+Subs 1 >>> 1
+Subs 1 >>> 2
+Subs 1 >>> 3
+Subs 1 >>> 4
+Subs 1 >>> 5
+Subs 1 >>> 6
+Subs 1 >>> 7
+Subs 1 >>> 8
+Subs 1 >>> 9
+Subs 1 >>> 10
+```
+
+<br>
+
+## Flux.fromIterable, fromArray
+
+**Flux.fromIterable()**<br>
+
+List 와 같은 컬렉션 타입이면서, Iterable 객체인 타입은 Flux 에서는 `Flux.fromIterable` 이라는 메서드로 변환 가능하다.<br>
+
+**Flux.fromArray()**<br>
+
+일반 배열도 `Flux.fromArray()` 메서드를 통해 하나의 데이터의 흐름으로 만들어내는 것이 가능하다.<br>
+
+<br>
+
+**예제) Flux.fromIterable()**<br>
+
+```java
+@Test
+public void FLUX_FROM_ITERABLE(){
+    List<String> list = Arrays.asList("a", "b", "c");
+    Flux.fromIterable(list)
+        .subscribe(Util.onNext());
+}
+```
+
+<br>
+
+**출력결과**<br>
+
+```plain
+Received >>> a
+Received >>> b
+Received >>> c
+```
+
+<br>
+
+**예제) Flux.fromArray()**<br>
+
+```java
+@Test
+public void FLUX_FROM_ARRAY(){
+    Integer [] numbers = {1,2,3,4,5,6,7,8,9,10};
+    Flux.fromArray(numbers)
+        .subscribe(Util.onNext());
+}
+```
+
+<br>
+
+**출력결과**<br>
+
+```plain
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Received >>> 5
+Received >>> 6
+Received >>> 7
+Received >>> 8
+Received >>> 9
+Received >>> 10
+```
+
+<br>
+
+## Flux.fromStream
+
+예제의 대략적인 내용을 정리해보면 이렇다.<br>
+
+Stream을 생성해서 stream 이라는 이름의 변수에 담아두고 있는다. 그리고, 이 stream을 각각 두번의 subscribe() 로 subscribe 한다. 이때 첫번째 subscribe() 에서 이미 생성된 Stream 을 소모했기에, 더 이상 stream이 생성되지 않는다.
+
+```java
+@Test
+public void FLUX_FROM_STREAM(){
+    List<Integer> list = List.of(1,2,3,4,5);
+    Stream<Integer> stream = list.stream();
+
+    Flux<Integer> flux = Flux.fromStream(stream);
+
+    flux.subscribe(Util.onNext(), Util.onError(), Util.onComplete());
+    flux.subscribe(Util.onNext(), Util.onError(), Util.onComplete());
+}
+```
+
+<br>
+
+**출력결과**
+
+```plain
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Received >>> 5
+Completed
+Error >>> stream has already been operated upon or closed
+```
+
+<br>
+
+이번에는 아래와 같이 lazy evalution 방식으로 람다안에서 stream을 생성하도록 수정해보는 예제다. 당연하게도 이번 결과는 잘 수행된다. 왜냐하면, 실행시에 stream 을 생성하기 때문이다. (그래도 가급적이면 Stream 보다는 컬렉션을 함수의 인자값/출력값으로 사용하자.)<br>
+
+```java
+@Test
+public void FLUX_FROM_STREAM_LAZY_CREATION(){
+    List<Integer> list = List.of(1,2,3,4,5);
+    Flux<Integer> numberFlux = Flux.fromStream(() -> list.stream());
+    numberFlux.subscribe(Util.onNext(), Util.onError(), Util.onComplete());
+    numberFlux.subscribe(Util.onNext(), Util.onError(), Util.onComplete());
+}
+```
+
+**출력결과**<br>
+
+```plain
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Received >>> 5
+Completed
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Received >>> 5
+Completed
+```
+
+데이터가 반복적으로 잘 출력되는 것을 볼 수 있다.<br>
+
+<br>
+
+## Flux.range
+
+숫자 5에서부터 출발해서 15개의 숫자를 만들어내는 Flux의 range를 사용하는 예제는 아래와 같다.
+
+```java
+@Test
+public void FLUX_RANGE_TEST(){
+    Flux.range(5,15)
+        .subscribe(Util.onNext());
+}
+```
+
+<br>
+
+출력결과는 아래와 같다.
+
+```plain
+Received >>> 5
+Received >>> 6
+Received >>> 7
+Received >>> 8
+Received >>> 9
+Received >>> 10
+Received >>> 11
+Received >>> 12
+Received >>> 13
+Received >>> 14
+Received >>> 15
+Received >>> 16
+Received >>> 17
+Received >>> 18
+Received >>> 19
+
+Process finished with exit code 0
+```
+
+<br>
+
+## Flux.map
+
+이번에는 Flux.range 로 생성된 데이터를 map으로 다른 데이터로 변환해보는 예제다.
+
+```java
+@Test
+public void FLUX_RANGE_AND_MAP_TEST(){
+    Flux.range(5,15)
+        .map(number -> Faker.instance().name().fullName())
+        .subscribe(Util.onNext());
+}
+```
+
+<br>
+
+출력결과
+
+```plain
+Received >>> Mr. Dean O'Reilly
+Received >>> Del Baumbach
+Received >>> Hollis Gutmann
+Received >>> Karly Schiller
+Received >>> Olinda Sipes
+Received >>> Dean Moen
+Received >>> Solomon Swaniawski
+Received >>> Sharilyn Zieme
+Received >>> Mirna Konopelski
+Received >>> Delcie O'Connell
+Received >>> Marcus Towne
+Received >>> Jenny Schroeder
+Received >>> Percy Conn
+Received >>> Rochel Brakus
+Received >>> Ms. Janie Howe
+
+Process finished with exit code 0
+```
+
+<br>
+
+## Flux.log
+
+숫자 5에서부터 시작해서 3개의 숫자의 수열을 만들어내고 이것을 log() 메서드로 출력한다. 그리고 중간에 map 을 통해서 임의의 영어이름을 반환하게끔 했는데, 또 이것을 출력하기 위해 log() 메서드를 사용했다.<br>
+
+마지막으로 이 데이터를 사용하기 위해 subscribe() 메서드에 Util.onNext() 를 통해 `Consumer<Object> onNext()` 을 전달하여 구독을 한다.
+
+```java
+@Test
+public void FLUX_RANGE_AND_MAP_AND_LOG_TEST(){
+    Flux.range(5,3)
+        .log()
+        .map(number -> Faker.instance().name().fullName())
+        .log()
+        .subscribe(Util.onNext());
+}
+```
+
+<br>
+
+출력결과<br>
+
+```plain
+[ INFO] (main) | onSubscribe([Synchronous Fuseable] FluxRange.RangeSubscription)
+[ INFO] (main) | onSubscribe([Fuseable] FluxMapFuseable.MapFuseableSubscriber)
+[ INFO] (main) | request(unbounded)
+[ INFO] (main) | request(unbounded)
+[ INFO] (main) | onNext(5)
+[ INFO] (main) | onNext(Babette Nolan)
+Received >>> Babette Nolan
+[ INFO] (main) | onNext(6)
+[ INFO] (main) | onNext(Fausto Von)
+Received >>> Fausto Von
+[ INFO] (main) | onNext(7)
+[ INFO] (main) | onNext(Leeanne Osinski)
+Received >>> Leeanne Osinski
+[ INFO] (main) | onComplete()
+[ INFO] (main) | onComplete()
+
+Process finished with exit code 0
+```
+
+<br>
+
+가급적이면, log() 메서드는 상용코드에서는 사용하지 않는게 좋다.<br>
+
+<br>
+
+## Flux vs List
+
+List 는 데이터를 한번에 통으로 전달한다.<br>
+
+Flux는 데이터를 하나씩 하나씩 흘려서 보낸다.<br>
+
+Stream과 비슷한 방식이다. 하지만 Stream 은 한번 사용하고 최종연산을 거치면 더 이상 사용을 못한다는 단점이 있기에, 함수의 입력과 출력으로는 사용하지 않는편이다.<br>
+
+이런 이유로 예전에 일하던 직장 중 어떤 회사에서 데이터 애플리케이션을 개발할 때 WebFlux 또는 RxJava, r2dbc를 사용하는게 낫다고 생각했었는데, 도입하려다가, 반대에 부딪혀서 결국은 실행은 못했었다. 몰래 적용해놓고 공유할까도 했는데 차마 그렇게는 못했다.<br>
+
+실제로 Stream 으로 단발성 메시징 트래픽을 처리 결과 거의 모든 트래픽을 안정적으로 처리했지만, 트래픽이 매우 강했던 30분은 처리가 꽤 지연되어 1시간 정도 지연되어 저장되는 이슈가 있었다. 이때 힙덤프를 떠서 확인해보니, collect 관련 이슈였다.<br>
+
+아직까지도 사용하는 일반적인 프로그래밍 모델에서는 Stream으로 한번 처리가 된 데이터를 다시 List로 collect 해서 리턴하고, 다른 스레드에서 돌리는 소비자 측에서는 이 Collection 을 캐시에서 읽어들여서 다시 stream을 만들어내고, 데이터를 저장할 때는 다시 DB라이브러리 단에 List로 전달해주고, DB라이브러리 단은 이것을 List로 받고 이렇게 하게 된다. <br>
+
+이미 DB에 저장하는 작업도 최대한 지연되어 저장하게끔 하는 처리도 했고, 할 수 있는 거의 대부분의 처리를 해두었는데, 데이터 저장의 정합성에 문제가 있는 것은 아니지만, 트래픽이 강한 30분 정도의 구간대에 데이터 처리 속도를 끌어올리기 위해서는 결국 기존 프로그래밍 모델로는 더 이상 어떻게 처리가 불가능한 상황이었다.<br>
+
+아마 Mono, Flux, r2dbc 기반으로 프로젝트를 초반에 구성해뒀다면, 트래픽이 가장 강했던 30분 구간대의 데이터 처리 성능도 다른 작업으로 인한 레이턴시가 있더라도 자체적으로 어느정도는 꽤 수월하게 처리하지 않았을까 하고 생각하고 있다. 이미 3 ~ 4년 전부터 트래픽을 처리하는 대부분의 상용 서비스들이 WebFlux 를 도입하고 있는 이유가 이런이유가 가장 크지 않을까 하고 조심스럽게 생각해봤다.<br>
+
+<br>
+
+> 만약, 한번에 걸리는 연산시간이 꽤 크지만, 자주 수행하는 작업이 아니라면, Flux, Mono를 고집하지 않아도 된다. 하지만 성능개선을 위해서라면 도입을 주저할 필요는 없을 것 같다는 생각도 든다.<br>
+
+<br>
+
+예제를 한번 보자.<br>
+
+먼저, List를 출력하는 예제다.<br>
+
+```java
+@Test
+public void LIST_TEST(){
+    System.out.println(List.of(1,2,3,4,5));
+}
+```
+
+<br>
+
+출력결과<br>
+
+> 컬렉션은 아래와 같이 한번에 통으로 전달된다. 이렇게 통짜로 데이터를 보내는 작업이 단발성 메시징 솔루션에서는 부하가 커졌을때는 병목구간을 만들어낸다. 사실 이런 내용은 기본적인 내용이고,  Effective Java 에서도 Iterable 관련해서 언급되는 내용이다. <br>
+>
+> 언어 설계자가 저술하는 Effective Java 같은 종류의 책은 언어를 만들면서 생겨난 단점이나 실수들을 언급하면서 밑밥을 까는 역할도 하기에... 읽어볼 수 있는 것은 읽어봐야 하는 것 같다. <br>
+
+<br>
+
+```plain
+[1, 2, 3, 4, 5]
+```
+
+<br>
+
+이번 예제는 List 로부터 stream을 만들어내서 여러 번 사용가능한지 확인해보는 예제다.<br>
+
+출력결과를 보면 Stream 은 재사용을 못한다. 최종연산을 한번만 할수 있다.<br>
+
+```java
+@Test
+public void LIST_TO_STREAM_MULTIPLE_TEST(){
+    Stream<Integer> stream = List.of(1, 2, 3, 4, 5).stream();
+    System.out.println("First try >>> ");
+    stream.forEach(System.out::println);
+
+    System.out.println();
+    System.out.println("Second try >>> ");
+
+    stream.forEach(System.out::println);
+}
+```
+
+<br>
+
+출력결과는 아래와 같다.
+
+```java
+First try >>> 
+1
+2
+3
+4
+5
+
+Second try >>> 
+
+java.lang.IllegalStateException: stream has already been operated upon or closed
+```
+
+<br>
+
+이번에는 Flux 를 여러번 사용하는 예제다. 재사용이 된다.
+
+```java
+@Test
+public void LIST_TO_FLUX_MULTIPLE_TEST(){
+    Flux<Integer> numbers = Flux.range(1, 5);
+
+    System.out.println("First try >>> ");
+    numbers.subscribe(Util.onNext());
+
+    System.out.println();
+    System.out.println("Second try >>> ");
+    numbers.subscribe(Util.onNext());
+}
+```
+
+<br>
+
+```plain
+First try >>> 
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Received >>> 5
+
+Second try >>> 
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+Received >>> 5
+
+Process finished with exit code 0
+```
+
+<br>
+
+## Flux.interval
+
+먼저 아래와 같이 interval을 단순하게 메인스레드에서 실행해보자. 아마 아무것도 출력되지 않을 것이다.
+
+```java
+@Test
+public void FLUX_INTERVAL_TEST(){
+    Flux.interval(Duration.ofSeconds(1))
+        .subscribe(Util.onNext());
+}
+```
+
+<br>
+
+화면에 출력하는 역할을 수행할 수 있는 메인스레드가 interval 을 기다려줘야 한다. 아래의 코드를 실행해보자.
+
+```java
+@Test
+public void FLUX_INTERVAL_TEST(){
+    Flux.interval(Duration.ofSeconds(1))
+        .subscribe(Util.onNext());
+
+    Util.sleepSeconds(5);
+}
+```
+
+출력결과는 아래와 같이 잘 출력된다.
+
+```plain
+Received >>> 0
+Received >>> 1
+Received >>> 2
+Received >>> 3
+Received >>> 4
+
+Process finished with exit code 0
+```
+
+<br>
+
+## Mono → Flux 변환
+
+Mono를 Flux로 변환할 수 있다. 아래의 코드를 보자.
+
+```java
+@Test
+public void MONO_to_FLUX_TEST(){
+    Mono<String> mono = Mono.just("a");
+    Flux<String> flux = Flux.from(mono);
+    flux.subscribe(Util.onNext());
+}
+```
+
+<br>
+
+출력결과
+
+```plain
+Received >>> a
+
+Process finished with exit code 0
+```
+
+<br>
+
+## Flux → Mono 변환
+
+Flux 를 Mono 로 변환하는 것은 next() 메서드를 사용하면 된다.
+
+```java
+@Test
+public void FLUX_to_MONO_TEST(){
+    Mono<String> a = Flux.just("a").next();
+    a.subscribe(Util.onNext());
+}
+```
+
+<br>
+
+출력결과
+
+```plain
+Received >>> a
+
+Process finished with exit code 0
+```
+<br>
 
 # Util 클래스
 
@@ -482,6 +1200,15 @@ public class Util {
     
     public static Runnable onComplete(){
         return () -> System.out.println("Completed");
+    }
+    
+    public static void sleepSeconds(int n){
+        try {
+            Thread.sleep(n * 1000L);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
 ```
@@ -526,16 +1253,10 @@ public void FAKER_TEST(){
 
 <br>
 
-<br>
+<hr/>
 
-<br>
+이렇게 해서 엄청 기본적인 Flux, Mono 사용법 예제 정리는 모두 마쳤다. 정리하는게 꽤 힘들었지만, 한번 정리해놓고 나니, 나중에 헷갈리는 문법이 있을때 찾아볼수 있겠다는 생각이 들어서 안심은 된다.<br>
 
-<br>
-
-<br>
-
-<br>
-
-<br>
+설명을 적으면서 개념이 명확해진 부분도 있다.<br>
 
 <br>
