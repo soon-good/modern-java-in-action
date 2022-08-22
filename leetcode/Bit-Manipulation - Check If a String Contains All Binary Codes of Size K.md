@@ -35,8 +35,10 @@ Explanation: The binary code "00" is of length 2 and does not exist in the array
 세자리의 이진수 중 `100` 을 만들려면?
 
 - `1<<2` : 
+  - "**1을 두자리수 만큼 이동시키겠다**"
   - 1을 두자리 시프트한다. 
   - 100(2) 가 되는데, 십진수로는 4가 된다.
+  
 
 <br>
 
